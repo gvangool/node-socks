@@ -172,20 +172,34 @@ function initProxy() {
     resp[2] = 0x00;
     this.write(resp);
     console.log('Connecting to: %s:%d', resp.toString('utf8', 4, resp.length - 2), resp.readUInt16BE(resp.length - 2));
-    this.proxy.on('data', function(data) {
-        this.write(data);
-    }.bind(this));
-    this.on('data', function(data) {
-        this.proxy.write(data);
-    }.bind(this));
+    var from_proxy = function(data) {
+        try {
+            this.write(data);
+        } catch (err) {
+        }
+    }.bind(this);
+    var to_proxy = function(data) {
+        try {
+            this.proxy.write(data);
+        } catch (err) {
+        }
+    }.bind(this);
+
+    this.proxy.on('data', from_proxy);
+    this.on('data', to_proxy);
+
     this.proxy.on('close', function(had_error) {
-        console.error('Proxy closed');
+        this.removeListener('data', to_proxy);
         this.proxy = undefined;
         this.end();
+        console.error('Proxy closed');
     });
     this.on('close', function(had_error) {
+        if (this.proxy !== undefined) {
+            this.proxy.removeListener('data', from_proxy);
+            this.proxy.end();
+        }
         console.error('Socket closed');
-        this.proxy.end();
     }.bind(this));
 }
 
