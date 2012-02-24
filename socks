@@ -1,0 +1,22 @@
+#!/usr/bin/env node
+
+var socks = require('./socks.js');
+
+// Create server
+var HOST='127.0.0.1',
+    PORT='8888',
+    server = socks.createServer();
+server.on('error', function (e) {
+    console.error('SERVER ERROR: %j', e);
+    if (e.code == 'EADDRINUSE') {
+        console.log('Address in use, retrying in 10 seconds...');
+        setTimeout(function () {
+            console.log('Reconnecting to %s:%s', HOST, PORT);
+            server.close();
+            server.listen(PORT, HOST);
+        }, 10000);
+    }
+});
+server.listen(PORT, HOST);
+
+// vim: set filetype=javascript syntax=javascript :

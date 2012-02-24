@@ -203,19 +203,6 @@ function initProxy() {
     }.bind(this));
 }
 
-// Create server
-var HOST='127.0.0.1',
-    PORT='8888',
-    server = createSocksServer();
-server.on('error', function (e) {
-    console.error('SERVER ERROR: %j', e);
-    if (e.code == 'EADDRINUSE') {
-        console.log('Address in use, retrying in 10 seconds...');
-        setTimeout(function () {
-            console.log('Reconnecting to %s:%s', HOST, PORT);
-            server.close();
-            server.listen(PORT, HOST);
-        }, 10000);
-    }
-});
-server.listen(PORT, HOST);
+module.exports = {
+    createServer: createSocksServer
+};
