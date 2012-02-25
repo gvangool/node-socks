@@ -1,5 +1,10 @@
 var net = require('net'),
     util = require('util'),
+    log = function(args) {
+        //console.log(args);
+    },
+    info = console.info,
+    errorLog = console.error,
     clients = [],
     SOCKS_VERSION = 5,
 /*
@@ -65,10 +70,10 @@ function createSocksServer() {
     var socksServer = net.createServer();
     socksServer.on('listening', function() {
         var address = socksServer.address();
-        console.log('LISTENING %s:%s', address.address, address.port);
+        info('LISTENING %s:%s', address.address, address.port);
     });
     socksServer.on('connection', function(socket) {
-        console.log('CONNECTED %s:%s', socket.remoteAddress, socket.remotePort);
+        info('CONNECTED %s:%s', socket.remoteAddress, socket.remotePort);
         initSocksConnection.bind(socket)();
     });
     return socksServer;
@@ -87,7 +92,7 @@ function initSocksConnection() {
         }
     });
     this.on('error', function(e) {
-        console.error('%j', e);
+        errorLog('%j', e);
     });
 
     // do a handshake
@@ -102,7 +107,7 @@ function handshake(chunk) {
 
     // SOCKS Version 5 is the only support version
     if (chunk[0] != SOCKS_VERSION) {
-        console.error('handshake: wrong socks version: %d', chunk[0]);
+        errorLog('handshake: wrong socks version: %d', chunk[0]);
         this.end();
     }
     // Number of authentication methods
@@ -113,18 +118,18 @@ function handshake(chunk) {
     for (var i=2; i < method_count + 2; i++) {
         this.auth_methods.push(chunk[i]);
     }
-    console.log('Supported auth methods: %j', this.auth_methods);
+    log('Supported auth methods: %j', this.auth_methods);
 
     var resp = new Buffer(2);
     resp[0] = 0x05;
     if (this.auth_methods.indexOf(AUTHENTICATION.NOAUTH) > -1) {
-        console.log('Handing off to handleRequest');
+        log('Handing off to handleRequest');
         this.handleRequest = handleRequest.bind(this);
         this.on('data', this.handleRequest);
         resp[1] = AUTHENTICATION.NOAUTH;
         this.write(resp);
     } else {
-        console.error('Unsuported authentication method -- disconnecting');
+        errorLog('Unsuported authentication method -- disconnecting');
         resp[1] = 0xFF;
         this.end(resp);
     }
@@ -139,18 +144,18 @@ function handleRequest(chunk) {
     // Wrong version!
     if (chunk[0] !== SOCKS_VERSION) {
         this.end('%d%d', 0x05, 0x01);
-        console.error('handleRequest: wrong socks version: %d', chunk[0]);
+        errorLog('handleRequest: wrong socks version: %d', chunk[0]);
         return;
     } /* else if (chunk[2] == 0x00) {
         this.end(util.format('%d%d', 0x05, 0x01));
-        console.error('handleRequest: Mangled request. Reserved field is not null: %d', chunk[offset]);
+        errorLog('handleRequest: Mangled request. Reserved field is not null: %d', chunk[offset]);
         return;
     } */
     address = Address.read(chunk, 3);
     offset = 3 + Address.sizeOf(chunk, 3) + 2;
     port = chunk.readUInt16BE(offset);
 
-    console.log('Request: type: %d -- to: %s:%s', chunk[1], address, port);
+    log('Request: type: %d -- to: %s:%s', chunk[1], address, port);
 
     if (cmd == REQUEST_CMD.CONNECT) {
         this.request = chunk;
@@ -162,7 +167,7 @@ function handleRequest(chunk) {
 }
 
 function initProxy() {
-    console.log('Proxy connected');
+    log('Proxy connected');
     // creating response
     var resp = new Buffer(this.request.length);
     this.request.copy(resp);
@@ -171,7 +176,7 @@ function initProxy() {
     resp[1] = 0x00;
     resp[2] = 0x00;
     this.write(resp);
-    console.log('Connecting to: %s:%d', resp.toString('utf8', 4, resp.length - 2), resp.readUInt16BE(resp.length - 2));
+    log('Connecting to: %s:%d', resp.toString('utf8', 4, resp.length - 2), resp.readUInt16BE(resp.length - 2));
     var from_proxy = function(data) {
         try {
             this.write(data);
@@ -192,14 +197,14 @@ function initProxy() {
         this.removeListener('data', to_proxy);
         this.proxy = undefined;
         this.end();
-        console.error('Proxy closed');
-    });
+        errorLog('Proxy closed');
+    }.bind(this));
     this.on('close', function(had_error) {
         if (this.proxy !== undefined) {
             this.proxy.removeListener('data', from_proxy);
             this.proxy.end();
         }
-        console.error('Socket closed');
+        errorLog('Socket closed');
     }.bind(this));
 }
 
