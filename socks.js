@@ -66,7 +66,7 @@ var net = require('net'),
                 }
     };
 
-function createSocksServer() {
+function createSocksServer(cb) {
     var socksServer = net.createServer();
     socksServer.on('listening', function() {
         var address = socksServer.address();
@@ -74,13 +74,13 @@ function createSocksServer() {
     });
     socksServer.on('connection', function(socket) {
         info('CONNECTED %s:%s', socket.remoteAddress, socket.remotePort);
-        initSocksConnection.bind(socket)();
+        initSocksConnection.bind(socket)(cb);
     });
     return socksServer;
 }
 //
 // socket is available as this
-function initSocksConnection() {
+function initSocksConnection(on_accept) {
     // keep log of connected clients
     clients.push(this);
 
@@ -97,6 +97,7 @@ function initSocksConnection() {
 
     // do a handshake
     this.handshake = handshake.bind(this);
+    this.on_accept = on_accept; // No bind. We want 'this' to be the server, like it would be for net.createServer
     this.on('data', this.handshake);
 }
 
@@ -159,15 +160,15 @@ function handleRequest(chunk) {
 
     if (cmd == REQUEST_CMD.CONNECT) {
         this.request = chunk;
-        this.proxy = net.createConnection(port, address, initProxy.bind(this));
+        this.on_accept(this, port, address, proxyReady.bind(this));
     } else {
         this.end('%d%d', 0x05, 0x01);
         return;
     }
 }
 
-function initProxy() {
-    log('Proxy connected');
+function proxyReady() {
+    log('Indicating to the client that the proxy is ready');
     // creating response
     var resp = new Buffer(this.request.length);
     this.request.copy(resp);
@@ -176,36 +177,9 @@ function initProxy() {
     resp[1] = 0x00;
     resp[2] = 0x00;
     this.write(resp);
-    log('Connecting to: %s:%d', resp.toString('utf8', 4, resp.length - 2), resp.readUInt16BE(resp.length - 2));
-    var from_proxy = function(data) {
-        try {
-            this.write(data);
-        } catch (err) {
-        }
-    }.bind(this);
-    var to_proxy = function(data) {
-        try {
-            this.proxy.write(data);
-        } catch (err) {
-        }
-    }.bind(this);
+    log('Connected to: %s:%d', resp.toString('utf8', 4, resp.length - 2), resp.readUInt16BE(resp.length - 2));
 
-    this.proxy.on('data', from_proxy);
-    this.on('data', to_proxy);
 
-    this.proxy.on('close', function(had_error) {
-        this.removeListener('data', to_proxy);
-        this.proxy = undefined;
-        this.end();
-        errorLog('Proxy closed');
-    }.bind(this));
-    this.on('close', function(had_error) {
-        if (this.proxy !== undefined) {
-            this.proxy.removeListener('data', from_proxy);
-            this.proxy.end();
-        }
-        errorLog('Socket closed');
-    }.bind(this));
 }
 
 module.exports = {
