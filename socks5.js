@@ -28,8 +28,7 @@ cluster.fork();
 
 // Create server
 // The server accepts SOCKS connections. This particular server acts as a proxy.
-var HOST='192.168.1.110',
-    PORT='8888',
+var  PORT='8888',
     server = socks.createServer(function(socket, port, address, proxy_ready) {
 
       // Implement your own proxy here! Do encryption, tunnelling, whatever! Go flippin' mental!
@@ -82,13 +81,13 @@ server.on('error', function (e) {
     if (e.code == 'EADDRINUSE') {
         console.log('Address in use, retrying in 10 seconds...');
         setTimeout(function () {
-            console.log('Reconnecting to %s:%s', HOST, PORT);
+            console.log('Reconnecting to %s',PORT);
             server.close();
-            server.listen(PORT, HOST);
+            server.listen(PORT);
         }, 10000);
     }
 });
-server.listen(PORT, HOST);
+server.listen(PORT);
 
 
 }
