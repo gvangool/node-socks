@@ -93,4 +93,10 @@ server.listen(PORT, HOST);
 
 }
 
+//处理各种错误
+process.on('uncaughtException', function(err)
+{
+    console.log("\nError!!!!");
+    console.log(err);
+});
 
