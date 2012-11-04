@@ -12,6 +12,7 @@ if (cluster.isMaster) {
   for (var i = 0; i < numCPUs; i++) {
     cluster.fork();
   }
+if(1==numCPUs) cluster.fork();//make sure it is more than 2
 
   cluster.on('exit', function(worker, code, signal) {
 	var exitCode = worker.process.exitCode;
