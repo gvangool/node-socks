@@ -17,7 +17,10 @@ if(1==numCPUs) cluster.fork();//make sure it is more than 2
   cluster.on('exit', function(worker, code, signal) {
 	var exitCode = worker.process.exitCode;
       console.log('worker ' + worker.process.pid + ' died ('+exitCode+'). restarting...');
-  cluster.fork();
+
+ exec('taskkill /pid '+worker.process.pid +' /T /F');
+cluster.fork();
+	
   });
 } else {
   // Workers can share any TCP connection
@@ -25,7 +28,7 @@ if(1==numCPUs) cluster.fork();//make sure it is more than 2
 
 // Create server
 // The server accepts SOCKS connections. This particular server acts as a proxy.
-var HOST='127.0.0.1',
+var HOST='192.168.1.110',
     PORT='8888',
     server = socks.createServer(function(socket, port, address, proxy_ready) {
 
