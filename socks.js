@@ -183,10 +183,7 @@ function proxyReady() {
     resp[2] = 0x00;
     this.write(resp);
     log('Connected to: %s:%d', resp.toString('utf8', 4, resp.length - 2), resp.readUInt16BE(resp.length - 2));
-    this.on('timeout', function(e) {
-        errorLog('%j', e);
-	  this.end();
-    });
+   
 
 }
 

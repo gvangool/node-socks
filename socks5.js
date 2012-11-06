@@ -18,7 +18,7 @@ if(1==numCPUs) cluster.fork();//make sure it is more than 2
 	var exitCode = worker.process.exitCode;
       console.log('worker ' + worker.process.pid + ' died ('+exitCode+'). restarting...');
 
- exec('taskkill /pid '+worker.process.pid +' /T /F');
+// exec('taskkill /pid '+worker.process.pid +' /T /F');
 cluster.fork();
 	
   });
