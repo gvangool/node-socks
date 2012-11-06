@@ -36,7 +36,7 @@ var  PORT='8888',
 
       console.log('Got through the first part of the SOCKS protocol.')
       var proxy = net.createConnection(port, address, proxy_ready);
-	 d.add(proxy);
+//	 d.add(proxy);
       proxy.on('data', function(d) {
         try {
           console.log('receiving ' + d.length + ' bytes from proxy');
@@ -72,6 +72,11 @@ var  PORT='8888',
         }
         console.error('The application closed');
 	
+      }.bind(this));
+
+  proxy.on('error', function(had_error) {
+        socket.end();
+        console.error('The proxy error');	
       }.bind(this));
 
     });
