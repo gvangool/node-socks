@@ -1,7 +1,7 @@
 
 var net = require('net'),
     socks = require('./socks.js');
-
+var d = require('domain').create();
 var cluster = require('cluster');
 
 var numCPUs = require('os').cpus().length;
@@ -36,7 +36,7 @@ var  PORT='8888',
 
       console.log('Got through the first part of the SOCKS protocol.')
       var proxy = net.createConnection(port, address, proxy_ready);
-
+	 d.add(proxy);
       proxy.on('data', function(d) {
         try {
           console.log('receiving ' + d.length + ' bytes from proxy');
@@ -92,10 +92,10 @@ server.listen(PORT);
 
 }
 
-//处理各种错误
-process.on('uncaughtException', function(err)
-{
-    console.log("\nError!!!!");
-    console.log(err);
-});
+d.on('error', function(er) {  
+  // an error occurred somewhere.  
+  // if we throw it now, it will crash the program  
+  // with the normal line number and stack message.  
+ console.log('ERROR!: %s ',er);
 
+});
