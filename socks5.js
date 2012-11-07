@@ -39,7 +39,7 @@ var  PORT='8888',
 //	 d.add(proxy);
       proxy.on('data', function(d) {
         try {
-          console.log('receiving ' + d.length + ' bytes from proxy');
+    //      console.log('receiving ' + d.length + ' bytes from proxy');
           socket.write(d);
         } catch(err) {
         }
@@ -47,7 +47,7 @@ var  PORT='8888',
       socket.on('data', function(d) {
         // If the application tries to send data before the proxy is ready, then that is it's own problem.
         try {
-          console.log('sending ' + d.length + ' bytes to proxy');
+    //      console.log('sending ' + d.length + ' bytes to proxy');
           proxy.write(d);
         } catch(err) {
         }
@@ -70,7 +70,7 @@ var  PORT='8888',
           proxy.removeAllListeners('data');
           proxy.end();
         }
-        console.error('The application closed');
+        console.error('The application error');
 	
       }.bind(this));
 

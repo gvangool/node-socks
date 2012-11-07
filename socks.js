@@ -77,7 +77,7 @@ function createSocksServer(cb) {
         initSocksConnection.bind(socket)(cb);
 
     socket.on('error', function(e) {
-        errorLog(timeout ,'%j', e);
+        errorLog('error: %j', e);
 	  this.end();
     });
     });
@@ -96,7 +96,7 @@ function initSocksConnection(on_accept) {
             clients.splice(idx, 1);
         }
     });
-    this.on('error', function(e) {
+    this.on('initSocksConnection error', function(e) {
         errorLog('%j', e);
     });
 
