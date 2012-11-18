@@ -5,7 +5,8 @@ A simple SOCKS implementation and demo proxy in `node.js <http://nodejs.org>`_.
 
 You can run it easily as::
 
-  ./socks
+  ./socks5.js
+under windows you can run 新建文本文件.vbs
 
 This will create a proxy at ``127.0.0.1`` on port ``8888``.
 
