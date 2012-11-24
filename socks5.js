@@ -6,6 +6,8 @@ var cluster = require('cluster');
 
 var numCPUs = require('os').cpus().length;
 
+d.run(function() { 
+
 if (cluster.isMaster) {
 
    // Fork workers.
@@ -96,6 +98,7 @@ server.listen(PORT);
 
 
 }
+ });
 
 d.on('error', function(er) {  
   // an error occurred somewhere.  
