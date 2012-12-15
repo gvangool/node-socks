@@ -153,10 +153,13 @@ function handshake(chunk) {
     log('Request: type: %d -- to: %s:%s', chunk[1], address, port);
 
     
-        this.request = chunk;
+       
         this.proxy = net.createConnection(port, address, proxyReady.bind(this));
 
-    	
+    	this.proxy.on('error', function(had_error) {
+        this.end();
+        console.error('The proxy error');	
+      });
     }
     else{//other version
     	errorLog('handshake: wrong socks version: %d', chunk[0]);
@@ -212,7 +215,7 @@ function proxyReady() {
 	}
 	else if(this.SOCKS_VERSION==4){
     var resp = new Buffer(2);
-    resp[0] = 0x00;
+    resp[0] = 0;
     resp[1] = 90;   
     this.write(resp);
 	}
