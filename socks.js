@@ -7,7 +7,7 @@ var net = require('net'),
     errorLog = console.error,
     clients = [],
     SOCKS_VERSION4 = 4,
-    SOCKS_VERSION 5= 5,
+    SOCKS_VERSION5= 5,
 /*
  * Authentication methods
  ************************
@@ -141,7 +141,7 @@ function handshake(chunk) {
     }
     }
     else if(chunk[0] == SOCKS_VERSION4){
-    	this.SOCKS_VERSION=4
+    	this.SOCKS_VERSION=4;
     	var cmd=chunk[1],
         address,
         port;
@@ -154,7 +154,7 @@ function handshake(chunk) {
 
     
         this.request = chunk;
-        this.proxy = net.createConnection(port, address, initProxy.bind(this));
+        this.proxy = net.createConnection(port, address, proxyReady.bind(this));
 
     	
     }
