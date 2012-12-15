@@ -2,7 +2,8 @@ SOCKS implementation in node.js
 ===============================
 
 A simple SOCKS implementation and demo proxy in `node.js <http://nodejs.org>`_.
-
+ 
+It suports both socks5  and socks4.
 You can run it easily as::
 
   ./socks5.js
