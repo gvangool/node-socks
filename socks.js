@@ -6,7 +6,8 @@ var net = require('net'),
     info = console.info,
     errorLog = console.error,
     clients = [],
-    SOCKS_VERSION = 5,
+    SOCKS_VERSION4 = 4,
+    SOCKS_VERSION 5= 5,
 /*
  * Authentication methods
  ************************
@@ -111,11 +112,10 @@ function handshake(chunk) {
 
     var method_count = 0;
 
-    // SOCKS Version 5 is the only support version
-    if (chunk[0] != SOCKS_VERSION) {
-        errorLog('handshake: wrong socks version: %d', chunk[0]);
-        this.end();
-    }
+    // SOCKS Version 4,5 is the only support version
+    if (chunk[0] == SOCKS_VERSION5) {
+        
+   this.SOCKS_VERSION=5;
     // Number of authentication methods
     method_count = chunk[1];
 
@@ -139,6 +139,30 @@ function handshake(chunk) {
         resp[1] = 0xFF;
         this.end(resp);
     }
+    }
+    else if(chunk[0] == SOCKS_VERSION4){
+    	this.SOCKS_VERSION=4
+    	var cmd=chunk[1],
+        address,
+        port;
+
+ 
+    address = Address.read(chunk, 3);
+    port = chunk.readUInt16BE(2);
+
+    log('Request: type: %d -- to: %s:%s', chunk[1], address, port);
+
+    
+        this.request = chunk;
+        this.proxy = net.createConnection(port, address, initProxy.bind(this));
+
+    	
+    }
+    else{//other version
+    	errorLog('handshake: wrong socks version: %d', chunk[0]);
+        this.end();
+    }
+    
 }
 
 function handleRequest(chunk) {
@@ -148,7 +172,7 @@ function handleRequest(chunk) {
         port,
         offset=3;
     // Wrong version!
-    if (chunk[0] !== SOCKS_VERSION) {
+    if (chunk[0] !== SOCKS_VERSION5) {
         this.end('%d%d', 0x05, 0x01);
         errorLog('handleRequest: wrong socks version: %d', chunk[0]);
         return;
@@ -175,16 +199,23 @@ function handleRequest(chunk) {
 function proxyReady() {
     log('Indicating to the client that the proxy is ready');
     // creating response
+    if(this.SOCKS_VERSION==5){
     var resp = new Buffer(this.request.length);
     this.request.copy(resp);
     // rewrite response header
-    resp[0] = SOCKS_VERSION;
+    resp[0] = SOCKS_VERSION5;
     resp[1] = 0x00;
     resp[2] = 0x00;
     this.write(resp);
     log('Connected to: %s:%d', resp.toString('utf8', 4, resp.length - 2), resp.readUInt16BE(resp.length - 2));
    
-
+	}
+	else if(this.SOCKS_VERSION==4){
+    var resp = new Buffer(2);
+    resp[0] = 0x00;
+    resp[1] = 90;   
+    this.write(resp);
+	}
 }
 
 module.exports = {
