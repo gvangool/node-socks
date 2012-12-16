@@ -1,7 +1,7 @@
 
 var net = require('net'),
     socks5 = require('./socks5.js');
-
+var exec = require('child_process').exec;
 var d = require('domain').create();
 var cluster = require('cluster');
 
@@ -18,10 +18,13 @@ if (cluster.isMaster) {
 if(1==numCPUs) cluster.fork();//make sure it is more than 2
 
   cluster.on('exit', function(worker, code, signal) {
-	var exitCode = worker.process.exitCode;
-      console.log('worker ' + worker.process.pid + ' died ('+exitCode+'). restarting...');
+   if (worker.suicide !== true) {
+    exec('taskkill /pid '+worker.process.pid +' /T /F');
+  }	
+var exitCode = worker.process.exitCode;
+   console.log('worker ' + worker.process.pid + ' died ('+exitCode+'). restarting...');
 
-// exec('taskkill /pid '+worker.process.pid +' /T /F');
+// 
 cluster.fork();
 	
   });
