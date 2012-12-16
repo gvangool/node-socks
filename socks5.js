@@ -1,4 +1,5 @@
 var net = require('net'),
+ dgram = require('dgram'),
     util = require('util'),
     log = function(args) {
         console.log(args);
@@ -167,7 +168,31 @@ function handleRequest(chunk) {
     if (cmd == REQUEST_CMD.CONNECT) {
         this.request = chunk;
         this.on_accept(this, port, address, proxyReady.bind(this));
-    } else {
+    } else if(cmd == REQUEST_CMD.UDP_ASSOCIATE){
+        this.request = chunk;
+	this.udpclient = dgram.createSocket("udp4");
+       this.udpclient.bind(0);
+       var udpaddress = this.udpclient.address();
+//应答
+  var resp = new Buffer(chunk.length);
+    chunk.copy(resp);
+    // rewrite response header
+    resp[0] = SOCKS_VERSION;
+    resp[1] = 0x00;
+    resp[2] = 0x00;
+   var ad = udpaddress.address.split(".");
+    resp[4]=Number(ad[0]);
+   resp[5]=Number(ad[1]);
+   resp[6]=Number(ad[2]);
+   resp[7]=Number(ad[3]);
+   resp.writeUInt16BE(udpaddress.port,8);
+    this.write(resp);
+   this.clientaddress=address;
+   this.clientport=port;
+  this.udphandshake = udphandshake.bind(this);
+        this.udpclient.on('message', this.udphandshake);
+    }
+	else {
         this.end('%d%d', 0x05, 0x01);
         return;
     }
@@ -185,6 +210,41 @@ function proxyReady() {
     this.write(resp);
     log('Connected to: %s:%d', resp.toString('utf8', 4, resp.length - 2), resp.readUInt16BE(resp.length - 2));
    
+
+}
+function udphandshake(msg, rinfo) {
+    this.removeListener('message', this.udphandshake);
+//get the udp head
+if(rinfo.address==this.clientaddress){//转发
+var address=Address.read(msg, 3),
+    offset = 4 + Address.sizeOf(msg, 3),
+    port = chunk.readUInt16BE(offset);
+  this.udpclient.send(msg,offset+2,msg.length-offset-2,port,address);
+}else {//收到其它信息
+var resp = new Buffer(10+msg.length);
+    msg.copy(resp,10);
+    // rewrite response header
+    resp[0] = 0x00;
+    resp[1] = 0x00;
+    resp[2] = 0x00;
+    resp[3] = 0x01;
+   var ad = rinfo.address.split(".");
+    resp[4]=Number(ad[0]);
+   resp[5]=Number(ad[1]);
+   resp[6]=Number(ad[2]);
+   resp[7]=Number(ad[3]);
+   resp.writeUInt16BE(rinfo.port,8);
+    this.udpclient.send(resp,0,resp.length,this.clientport,this.clientaddress);
+}
+this.udpclient.on('error',function(){});
+this.on('close',function(had_error){
+this.end();
+this.udpclient.close();
+}.bind(this));
+this.on('error',function(had_error){
+this.end();
+this.udpclient.close();
+}.bind(this));
 
 }
 
