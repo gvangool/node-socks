@@ -1,7 +1,7 @@
 var net = require('net'),
     util = require('util'),
     log = function(args) {
-        //console.log(args);
+        console.log(args);
     },
     info = console.info,
     errorLog = console.error,
@@ -59,7 +59,7 @@ var net = require('net'),
                     if (buffer[offset] == ATYP.IP_V4) {
                         return 4;
                     } else if (buffer[offset] == ATYP.DNS) {
-                        return buffer[offset+1];
+                        return buffer[offset+1]+1;
                     } else if (buffer[offset] == ATYP.IP_V6) {
                         return 16;
                     }
@@ -75,6 +75,11 @@ function createSocksServer(cb) {
     socksServer.on('connection', function(socket) {
         info('CONNECTED %s:%s', socket.remoteAddress, socket.remotePort);
         initSocksConnection.bind(socket)(cb);
+
+    socket.on('error', function(e) {
+        errorLog('error: %j', e);
+	  this.end();
+    });
     });
     return socksServer;
 }
@@ -91,7 +96,7 @@ function initSocksConnection(on_accept) {
             clients.splice(idx, 1);
         }
     });
-    this.on('error', function(e) {
+    this.on('initSocksConnection error', function(e) {
         errorLog('%j', e);
     });
 
@@ -146,6 +151,7 @@ function handleRequest(chunk) {
     if (chunk[0] !== SOCKS_VERSION) {
         this.end('%d%d', 0x05, 0x01);
         errorLog('handleRequest: wrong socks version: %d', chunk[0]);
+        log(chunk);
         return;
     } /* else if (chunk[2] == 0x00) {
         this.end(util.format('%d%d', 0x05, 0x01));
@@ -153,7 +159,7 @@ function handleRequest(chunk) {
         return;
     } */
     address = Address.read(chunk, 3);
-    offset = 3 + Address.sizeOf(chunk, 3) + 2;
+    offset = 4 + Address.sizeOf(chunk, 3);
     port = chunk.readUInt16BE(offset);
 
     log('Request: type: %d -- to: %s:%s', chunk[1], address, port);
@@ -178,7 +184,7 @@ function proxyReady() {
     resp[2] = 0x00;
     this.write(resp);
     log('Connected to: %s:%d', resp.toString('utf8', 4, resp.length - 2), resp.readUInt16BE(resp.length - 2));
-
+   
 
 }
 
