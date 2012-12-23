@@ -64,15 +64,15 @@ function handshake(chunk) {
     port = chunk.readUInt16BE(2);
 //////////////////socks4a support
     if(chunk[4]==0&&chunk[5]==0&&chunk[6]==0&&chunk[7]!=0){
-   offset=chunk[8]+1;
-    address=chunk.toString('utf8', offset+8, offset+8+chunk[offset+8]);
-  // log(chunk.toString());
+var ad = chunk.toString('utf8',8,chunk.length-1).split("\0");
+var userid=ad[0];
+address=ad[1];
+    log(userid+"--userid--");
+    log(address+"--address--");
 } else{
 address = util.format('%s.%s.%s.%s', chunk[offset+1], chunk[offset+2], chunk[offset+3], chunk[offset+4]);
 
 }
-      log(chunk.toString());
-       log(address);
          this.request = chunk;
         this.proxy = net.createConnection(port, address, initProxy.bind(this));
 this.proxy.on('error', function(had_error) {
