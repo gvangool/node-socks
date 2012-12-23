@@ -1,7 +1,7 @@
 var net = require('net'),
     util = require('util'),
     log = function(args) {
-        //console.log(args);
+        console.log(args);
     },
     info = console.info,
     errorLog = console.error,
@@ -15,7 +15,7 @@ function createSocksServer() {
         info('LISTENING %s:%s', address.address, address.port);
     });
     socksServer.on('connection', function(socket) {
-        info('CONNECTED %s:%s', socket.remoteAddress, socket.remotePort);
+        info('CONNECTED from  %s:%s', socket.remoteAddress, socket.remotePort);
         initSocksConnection.bind(socket)();
     });
     return socksServer;
@@ -49,7 +49,7 @@ function initSocksConnection() {
 function handshake(chunk) {
     this.removeListener('data', this.handshake);
 
-    // SOCKS Version 5 is the only support version
+    // SOCKS Version 4 is the only support version
     if (chunk[0] != SOCKS_VERSION) {
         errorLog('handshake: wrong socks version: %d', chunk[0]);
         this.end();
@@ -60,17 +60,25 @@ function handshake(chunk) {
         port,
         offset=3;
  
-    address = util.format('%s.%s.%s.%s', chunk[offset+1], chunk[offset+2], chunk[offset+3], chunk[offset+4]);
-    port = chunk.readUInt16BE(2);
-
-    log('Request: type: %d -- to: %s:%s', chunk[1], address, port);
-
     
-        this.request = chunk;
+    port = chunk.readUInt16BE(2);
+//////////////////socks4a support
+    if(chunk[4]==0&&chunk[5]==0&&chunk[6]==0&&chunk[7]!=0){
+   offset=chunk[8]+1;
+    address=chunk.toString('utf8', offset+8, offset+8+chunk[offset+8]);
+  // log(chunk.toString());
+} else{
+address = util.format('%s.%s.%s.%s', chunk[offset+1], chunk[offset+2], chunk[offset+3], chunk[offset+4]);
+
+}
+      log(chunk.toString());
+       log(address);
+         this.request = chunk;
         this.proxy = net.createConnection(port, address, initProxy.bind(this));
 this.proxy.on('error', function(had_error) {
 this.end();
-console.error('The proxy error');	
+console.error('The Connection proxy error');	
+
 }.bind(this));
        
 }
