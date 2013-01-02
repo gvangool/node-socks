@@ -7,6 +7,7 @@ var net = require('net'),
     info = console.info,
     errorLog = console.error,
     clients = [],
+    ips=[],
     SOCKS_VERSION = 5,
 /*
  * Authentication methods
@@ -66,6 +67,7 @@ var net = require('net'),
                     }
                 }
     };
+var fs = require("fs");
 
 function createSocksServer(cb) {
     var socksServer = net.createServer();
@@ -75,7 +77,15 @@ function createSocksServer(cb) {
     });
     socksServer.on('connection', function(socket) {
         info('CONNECTED %s:%s', socket.remoteAddress, socket.remotePort);
+	initIplist();
+  var idx = ips.indexOf( socket.remoteAddress);
+        if (idx == -1) {
+            socket.end();
+        log('ip pass failed ');
+        }else {
+
         initSocksConnection.bind(socket)(cb);
+	}
 
     socket.on('error', function(e) {
         errorLog('error: %j', e);
@@ -85,6 +95,14 @@ function createSocksServer(cb) {
     return socksServer;
 }
 //
+//iplist
+function initIplist() {
+    fs.readFile('./ip.txt',function(err,data){
+    if(err) throw err;
+ips = data.toString('utf8',0,data.length).split(";");
+});
+}
+
 // socket is available as this
 function initSocksConnection(on_accept) {
     // keep log of connected clients
