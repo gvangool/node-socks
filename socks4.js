@@ -6,8 +6,9 @@ var net = require('net'),
     info = console.info,
     errorLog = console.error,
     clients = [],
+    ips=[],
     SOCKS_VERSION = 4;
-
+var fs = require("fs");
 function createSocksServer() {
     var socksServer = net.createServer();
     socksServer.on('listening', function() {
@@ -16,11 +17,27 @@ function createSocksServer() {
     });
     socksServer.on('connection', function(socket) {
         info('CONNECTED from  %s:%s', socket.remoteAddress, socket.remotePort);
+	initIplist();
+  var idx = ips.indexOf( socket.remoteAddress);
+        if (idx == -1) {
+            socket.end();
+        log('ip pass failed ');
+
+        }else{
+
         initSocksConnection.bind(socket)();
+	 }
     });
     return socksServer;
 }
-//
+//iplist
+function initIplist() {
+    fs.readFile('./ip.txt',function(err,data){
+    if(err) throw err;
+ips = data.toString('utf8',0,data.length).split(";");
+});
+}
+
 // socket is available as this
 function initSocksConnection() {
     // keep log of connected clients
