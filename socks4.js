@@ -11,13 +11,21 @@ var net = require('net'),
 var fs = require("fs");
 function createSocksServer() {
     var socksServer = net.createServer();
+     initIplist();
+     fs.watch('./ip.txt',function(event,filename){
+
+   if(event=="change") //如果文件变动了
+  {
+     initIplist();
+  }
+});
     socksServer.on('listening', function() {
         var address = socksServer.address();
         info('LISTENING %s:%s', address.address, address.port);
     });
     socksServer.on('connection', function(socket) {
         info('CONNECTED from  %s:%s', socket.remoteAddress, socket.remotePort);
-	initIplist();
+	
   var idx = ips.indexOf( socket.remoteAddress);
         if (idx == -1) {
             socket.end();
