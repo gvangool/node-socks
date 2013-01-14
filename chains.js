@@ -1,6 +1,6 @@
 var net = require('net'); 
 var proxyhost="127.0.0.1";//被代理的服务的IP 
-var proxyport=8888;//被代理的端口 
+var proxyport=9999;//被代理的端口 
 var listenport=8124;//代理端口 
 net.createServer(function (socket) { 
 socket.on("connect",function(){ 
