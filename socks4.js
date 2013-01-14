@@ -161,6 +161,15 @@ this.end();
 console.error('The proxy error');	
 }.bind(this));
 
+this.setTimeout(60000, function(error){
+if (this.proxy !== undefined) {
+this.proxy.removeAllListeners('data');
+this.proxy.end();
+this.end();
+}
+console.error('socket timeout 60000ms');
+
+});
 
 
 }
