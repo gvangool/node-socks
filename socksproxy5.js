@@ -53,7 +53,8 @@ var  PORT5='8888',
       socket.on('data', function(d) {
         // If the application tries to send data before the proxy is ready, then that is it's own problem.
         try {
-    //      console.log('sending ' + d.length + ' bytes to proxy');
+    
+  //   console.log('sending ' + d.length + ' bytes to proxy');
           proxy.write(d);
         } catch(err) {
         }
@@ -85,7 +86,27 @@ var  PORT5='8888',
         console.error('The proxy error');	
       }.bind(this));
 
+socket.setTimeout(60000, function(error){
+if (this.proxy !== undefined) {
+proxy.removeAllListeners('data');
+proxy.end();
+
+}
+this.end();
+console.error('socket timeout 60000ms');
+
+}.bind(this));
+
+proxy.setTimeout(60000, function(error){
+proxy.removeAllListeners('data');
+proxy.end();
+this.end();
+console.error('proxy socket timeout 60000ms');
+
+}.bind(this));
+
     });
+
 
 server5.on('error', function (e) {
     console.error('SERVER ERROR: %j', e);
