@@ -58,13 +58,7 @@ function initSocksConnection() {
             clients.splice(idx, 1);
         }
     });
-    this.on('error', function(e) {
-        errorLog('%j', e);
-        var idx = clients.indexOf(this);
-        if (idx != -1) {
-            clients.splice(idx, 1);
-        }
-    });
+   
 
     // do a handshake
     this.handshake = handshake.bind(this);
@@ -92,8 +86,8 @@ function handshake(chunk) {
 var ad = chunk.toString('utf8',8,chunk.length-1).split("\0");
 var userid=ad[0];
 address=ad[1];
-    log(userid+"--userid--");
-    log(address+"--address--");
+  //  log(userid+"--userid--");
+   // log(address+"--address--");
 } else{
 address = util.format('%s.%s.%s.%s', chunk[offset+1], chunk[offset+2], chunk[offset+3], chunk[offset+4]);
 
@@ -138,39 +132,48 @@ function initProxy() {
         this.removeListener('data', to_proxy);
         this.proxy = undefined;
         this.end();
-        errorLog('Proxy closed');
+   //     errorLog('Proxy closed');
     }.bind(this));
     this.on('close', function(had_error) {
         if (this.proxy !== undefined) {
             this.proxy.removeListener('data', from_proxy);
             this.proxy.end();
         }
-        errorLog('Socket closed');
+    //    errorLog('Socket closed');
     }.bind(this));
 this.on('error', function(had_error) {
 if (this.proxy !== undefined) {
 this.proxy.removeAllListeners('data');
 this.proxy.end();
+
 }
-console.error('The application error');
+//console.error('The application error');
 
 }.bind(this));
 
 this.proxy.on('error', function(had_error) {
 this.end();
-console.error('The proxy error');	
+//console.error('The proxy error');	
 }.bind(this));
 
 this.setTimeout(60000, function(error){
 if (this.proxy !== undefined) {
 this.proxy.removeAllListeners('data');
 this.proxy.end();
-this.end();
+
 }
+this.end();
 console.error('socket timeout 60000ms');
 
-});
+}.bind(this));
 
+this.proxy.setTimeout(60000, function(error){
+this.proxy.removeAllListeners('data');
+this.proxy.end();
+this.end();
+console.error(' proxy socket timeout 60000ms');
+
+}.bind(this));
 
 }
 
