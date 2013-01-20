@@ -125,7 +125,7 @@ function initSocksConnection(on_accept) {
         }
     });
     this.on('initSocksConnection error', function(e) {
-        errorLog('%j', e);
+        errorLog('initSocksConnection error');
     });
 
     // do a handshake
@@ -152,7 +152,7 @@ function handshake(chunk) {
     for (var i=2; i < method_count + 2; i++) {
         this.auth_methods.push(chunk[i]);
     }
-    log('Supported auth methods: %j', this.auth_methods);
+   // log('Supported auth methods: %j', this.auth_methods);
 
     var resp = new Buffer(2);
     resp[0] = 0x05;
