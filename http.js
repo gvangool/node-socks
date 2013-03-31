@@ -64,9 +64,23 @@ try
 {client.end();}
 catch (e)
 { }
-
 });
+server.on("error",function (e){
+console.log("server close");
+console.log(e);
+try 
+{client.end();}
+catch (e)
+{ }
+});
+
 client.on("close",function (e){
+try 
+{server.end();}
+catch (e)
+{ }
+});
+client.on("error",function (e){
 try 
 {server.end();}
 catch (e)
@@ -176,7 +190,7 @@ cluster.fork();
 	
   });
 } else {
-sockserver.listen(local_port);
+sockserver.listen(8080);
 
 }
 
