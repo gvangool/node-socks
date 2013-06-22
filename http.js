@@ -1,11 +1,11 @@
 var  net=require('net');
 var local_port=8080;
 
-//在本地创建一个server监听本地local_port端口
+//锟节憋拷锟截达拷锟斤拷一锟斤拷server锟斤拷锟斤拷锟斤拷锟斤拷local_port锟剿匡拷
 var sockserver=net.createServer(function (client)
 {
 
-//首先监听浏览器的数据发送事件，直到收到的数据包含完整的http请求头
+//锟斤拷锟饺硷拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟捷凤拷锟斤拷锟铰硷拷锟斤拷直锟斤拷锟秸碉拷锟斤拷锟斤拷锟捷帮拷锟斤拷锟斤拷锟斤拷锟斤拷http锟斤拷锟斤拷头
 var buffer=new Buffer(0);
 client.on('data',function (data)
 {
@@ -17,23 +17,23 @@ client.removeAllListeners('data');
 relay_connection(req);
 });
 
-//从http请求头部取得请求信息后，继续监听浏览器发送数据，同时连接目标服务器，并把目标服务器的数据传给浏览器
+//锟斤拷http锟斤拷锟斤拷头锟斤拷取锟斤拷锟斤拷锟斤拷锟斤拷息锟襟，硷拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟捷ｏ拷同时锟斤拷锟斤拷目锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷目锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟捷达拷锟斤拷锟斤拷锟斤拷锟斤拷
 function  relay_connection(req)
 {
 console.log(req.method+' '+req.host+':'+req.port);
 
-//如果请求不是CONNECT方法（GET, POST），那么替换掉头部的一些东西
+//锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷CONNECT锟斤拷锟斤拷锟斤拷GET, POST锟斤拷锟斤拷锟斤拷么锟芥换锟斤拷头锟斤拷锟斤拷一些锟斤拷锟斤拷
 if(req.method!='CONNECT')
 {
-//先从buffer中取出头部
+//锟饺达拷buffer锟斤拷取锟斤拷头锟斤拷
 var _body_pos=buffer_find_body(buffer);
 if(_body_pos<0)_body_pos=buffer.length;
 var header=buffer.slice(0,_body_pos).toString('utf8');
-//替换connection头
+//锟芥换connection头
 header=header.replace(/(proxy\-)connection\:.+\r\n/ig,'')
 .replace(/Keep\-Alive\:.+\r\n/i,'')
 .replace("\r\n",'\r\nConnection: close\r\n');
-//替换网址格式(去掉域名部分)
+//锟芥换锟斤拷址锟斤拷式(去锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷)
 if(req.httpVersion=='1.1')
 {
 var url=req.path.replace(/http\:\/\/[^\/]+/,'');
@@ -42,9 +42,9 @@ if(url.path!=url)header=header.replace(req.path,url);
 buffer=buffer_add(new Buffer(header,'utf8'),buffer.slice(_body_pos));
 }
 
-//建立到目标服务器的连接
+//锟斤拷锟斤拷锟斤拷目锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
 var server=net.createConnection(req.port,req.host);
-//交换服务器与浏览器的数据
+//锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
 client.on("data",function (data){
 try 
 {server.write(data);}
@@ -57,7 +57,7 @@ try
 catch (e)
 { }
 });
-server.on("close",function (e){
+server.on("end",function (e){
 console.log("server close");
 console.log(e);
 try 
@@ -69,12 +69,12 @@ server.on("error",function (e){
 console.log("server close");
 console.log(e);
 try 
-{client.end();}
+{client.destroy();}
 catch (e)
 { }
 });
 
-client.on("close",function (e){
+client.on("end",function (e){
 try 
 {server.end();}
 catch (e)
@@ -82,7 +82,7 @@ catch (e)
 });
 client.on("error",function (e){
 try 
-{server.end();}
+{server.destroy();}
 catch (e)
 { }
 });
@@ -93,7 +93,7 @@ server.write(buffer);
 }
 });
 
-//处理各种错误
+//锟斤拷锟斤拷锟斤拷锟街达拷锟斤拷
 process.on('uncaughtException',function (err)
 {
 console.log("\nError!!!!");
@@ -107,9 +107,9 @@ sockserver.on('listening', function() {
 
 
 /**
-* 从请求头部取得请求详细信息
-* 如果是 CONNECT 方法，那么会返回 { method,host,port,httpVersion}
-* 如果是 GET/POST 方法，那么返回 { metod,host,port,path,httpVersion}
+* 锟斤拷锟斤拷锟斤拷头锟斤拷取锟斤拷锟斤拷锟斤拷锟斤拷细锟斤拷息
+* 锟斤拷锟斤拷锟斤拷 CONNECT 锟斤拷锟斤拷锟斤拷锟斤拷么锟结返锟斤拷 { method,host,port,httpVersion}
+* 锟斤拷锟斤拷锟斤拷 GET/POST 锟斤拷锟斤拷锟斤拷锟斤拷么锟斤拷锟斤拷 { metod,host,port,path,httpVersion}
 */
 function  parse_request(buffer)
 {
@@ -141,7 +141,7 @@ return  false;
 
 
 /**
-* 两个buffer对象加起来
+* 锟斤拷锟斤拷buffer锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
 */
 function  buffer_add(buf1,buf2)
 {
@@ -152,7 +152,7 @@ return  re;
 }
 
 /**
-* 从缓存中找到头部结束标记("\r\n\r\n")的位置
+* 锟接伙拷锟斤拷锟斤拷锟揭碉拷头锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷("\r\n\r\n")锟斤拷位锟斤拷
 */
 function  buffer_find_body(b)
 {
