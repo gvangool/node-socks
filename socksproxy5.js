@@ -1,4 +1,3 @@
-
 var net = require('net'),
     socks5 = require('./socks5.js');
 var exec = require('child_process').exec;
@@ -60,11 +59,11 @@ var  PORT5='8888',
         }
       });
 
-      proxy.on('close', function(had_error) {
+      proxy.on('end', function(had_error) {
         socket.end();
         console.error('The proxy closed');
       }.bind(this));
-      socket.on('close', function(had_error) {
+      socket.on('end', function(had_error) {
         if (this.proxy !== undefined) {
           proxy.removeAllListeners('data');
           proxy.end();
@@ -75,14 +74,14 @@ var  PORT5='8888',
       socket.on('error', function(had_error) {
         if (this.proxy !== undefined) {
           proxy.removeAllListeners('data');
-          proxy.end();
+          proxy.destroy();
         }
         console.error('The application error');
 	
       }.bind(this));
 
   proxy.on('error', function(had_error) {
-        socket.end();
+        socket.destroy();
         console.error('The proxy error');	
       }.bind(this));
 
