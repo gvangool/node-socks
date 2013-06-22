@@ -14,7 +14,7 @@ function createSocksServer() {
      initIplist();
      fs.watch('./ip.txt',function(event,filename){
 
-   if(event=="change") //Èç¹ûÎÄ¼þ±ä¶¯ÁË
+   if(event=="change") //ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ä¶¯ï¿½ï¿½
   {
      initIplist();
   }
@@ -128,13 +128,13 @@ function initProxy() {
     this.proxy.on('data', from_proxy);
     this.on('data', to_proxy);
 
-    this.proxy.on('close', function(had_error) {
+    this.proxy.on('end', function(had_error) {
         this.removeListener('data', to_proxy);
         this.proxy = undefined;
         this.end();
    //     errorLog('Proxy closed');
     }.bind(this));
-    this.on('close', function(had_error) {
+    this.on('end', function(had_error) {
         if (this.proxy !== undefined) {
             this.proxy.removeListener('data', from_proxy);
             this.proxy.end();
@@ -144,7 +144,7 @@ function initProxy() {
 this.on('error', function(had_error) {
 if (this.proxy !== undefined) {
 this.proxy.removeAllListeners('data');
-this.proxy.end();
+this.proxy.destroy();
 
 }
 //console.error('The application error');
@@ -152,7 +152,7 @@ this.proxy.end();
 }.bind(this));
 
 this.proxy.on('error', function(had_error) {
-this.end();
+this.destroy();
 //console.error('The proxy error');	
 }.bind(this));
 
