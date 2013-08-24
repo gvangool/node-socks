@@ -74,10 +74,10 @@ function createSocksServer(cb) {
 
      initIplist();
      fs.watch('./ip.txt',function(event,filename){
-   if(event=="change") //如果文件变动了
-  {
-     initIplist();
-  }
+if(event=="change") //如果文件变动了
+{
+ initIplist();
+}
 });
 
     socksServer.on('listening', function() {
@@ -86,11 +86,11 @@ function createSocksServer(cb) {
     });
     socksServer.on('connection', function(socket) {
         info('CONNECTED %s:%s', socket.remoteAddress, socket.remotePort);
-	
+
   var idx = ips.indexOf( socket.remoteAddress);
-        if (idx == -1) {
+        if (idx != -1) {
             socket.end();
-        log('ip pass failed ');
+            log('ip pass failed ');
         }else {
 
         initSocksConnection.bind(socket)(cb);
@@ -197,27 +197,31 @@ function handleRequest(chunk) {
         this.on_accept(this, port, address, proxyReady.bind(this));
     } else if(cmd == REQUEST_CMD.UDP_ASSOCIATE){
         this.request = chunk;
-	this.udpclient = dgram.createSocket("udp4");
-       this.udpclient.bind(0);
-       var udpaddress = this.udpclient.address();
+        var client = this;
+	    this.udpclient = dgram.createSocket("udp4");
+        this.udpclient.bind(0,function(){
+            var udpaddress = client.udpclient.address();
+            var resp = new Buffer(chunk.length);
+            chunk.copy(resp);
+            // rewrite response header
+            resp[0] = SOCKS_VERSION;
+            resp[1] = 0x00;
+            resp[2] = 0x00;
+            var ad = udpaddress.address.split(".");
+            resp[4]=Number(ad[0]);
+            resp[5]=Number(ad[1]);
+            resp[6]=Number(ad[2]);
+            resp[7]=Number(ad[3]);
+            resp.writeUInt16BE(udpaddress.port,8);
+            client.write(resp);
+            client.clientaddress=address;
+            client.clientport=port;
+            client.udphandshake = udphandshake.bind(client);
+            client.udpclient.on('message', client.udphandshake);
+        });
+
 //应答
-  var resp = new Buffer(chunk.length);
-    chunk.copy(resp);
-    // rewrite response header
-    resp[0] = SOCKS_VERSION;
-    resp[1] = 0x00;
-    resp[2] = 0x00;
-   var ad = udpaddress.address.split(".");
-    resp[4]=Number(ad[0]);
-   resp[5]=Number(ad[1]);
-   resp[6]=Number(ad[2]);
-   resp[7]=Number(ad[3]);
-   resp.writeUInt16BE(udpaddress.port,8);
-    this.write(resp);
-   this.clientaddress=address;
-   this.clientport=port;
-  this.udphandshake = udphandshake.bind(this);
-        this.udpclient.on('message', this.udphandshake);
+
     }
 	else {
         this.end('%d%d', 0x05, 0x01);
