@@ -1,5 +1,6 @@
 var net = require('net'),
  dgram = require('dgram'),
+ dns = require('dns'),
     util = require('util'),
     log = function(args) {
         console.log(args);
@@ -86,7 +87,7 @@ if(event=="change") //如果文件变动了
     });
     socksServer.on('connection', function(socket) {
         info('CONNECTED %s:%s', socket.remoteAddress, socket.remotePort);
-
+	
   var idx = ips.indexOf( socket.remoteAddress);
         if (idx != -1) {
             socket.end();
@@ -247,10 +248,23 @@ function udphandshake(msg, rinfo) {
     this.removeListener('message', this.udphandshake);
 //get the udp head
 if(rinfo.address==this.clientaddress){//转发
+if(msg[3]==1){
 var address=Address.read(msg, 3),
     offset = 4 + Address.sizeOf(msg, 3),
     port = chunk.readUInt16BE(offset);
   this.udpclient.send(msg,offset+2,msg.length-offset-2,port,address);
+}
+else if(msg[3]==3){
+var dnsaddress=Address.read(msg, 3),
+    offset = 4 + Address.sizeOf(msg, 3),
+    port = chunk.readUInt16BE(offset);
+   dns.lookup(dnsaddress,4,function(err, address, family){
+if (err) throw err;
+dnsaddress=address;
+this.udpclient.send(msg,offset+2,msg.length-offset-2,port,dnsaddress);});
+  
+
+}
 }else {//收到其它信息
 var resp = new Buffer(10+msg.length);
     msg.copy(resp,10);
