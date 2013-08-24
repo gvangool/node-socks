@@ -27,7 +27,7 @@ function createSocksServer() {
         info('CONNECTED from  %s:%s', socket.remoteAddress, socket.remotePort);
 	
   var idx = ips.indexOf( socket.remoteAddress);
-        if (idx == -1) {
+        if (idx != -1) {
             socket.end();
         log('ip pass failed ');
 
