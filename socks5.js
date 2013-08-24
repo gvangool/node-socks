@@ -74,7 +74,7 @@ function createSocksServer(cb) {
 
      initIplist();
      fs.watch('./ip.txt',function(event,filename){
-   if(event=="change") //Èç¹ûÎÄ¼ş±ä¶¯ÁË
+   if(event=="change") //å¦‚æœæ–‡ä»¶å˜åŠ¨äº†
   {
      initIplist();
   }
@@ -200,7 +200,7 @@ function handleRequest(chunk) {
 	this.udpclient = dgram.createSocket("udp4");
        this.udpclient.bind(0);
        var udpaddress = this.udpclient.address();
-//Ó¦´ğ
+//åº”ç­”
   var resp = new Buffer(chunk.length);
     chunk.copy(resp);
     // rewrite response header
@@ -242,12 +242,12 @@ function proxyReady() {
 function udphandshake(msg, rinfo) {
     this.removeListener('message', this.udphandshake);
 //get the udp head
-if(rinfo.address==this.clientaddress){//×ª·¢
+if(rinfo.address==this.clientaddress){//è½¬å‘
 var address=Address.read(msg, 3),
     offset = 4 + Address.sizeOf(msg, 3),
     port = chunk.readUInt16BE(offset);
   this.udpclient.send(msg,offset+2,msg.length-offset-2,port,address);
-}else {//ÊÕµ½ÆäËüĞÅÏ¢
+}else {//æ”¶åˆ°å…¶å®ƒä¿¡æ¯
 var resp = new Buffer(10+msg.length);
     msg.copy(resp,10);
     // rewrite response header
