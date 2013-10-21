@@ -1,8 +1,6 @@
 var net = require('net'),
     util = require('util'),
-    log = function(args) {
-        //console.log(args);
-    },
+    log = function(){},///console.log,
     info = console.info,
     errorLog = console.error,
     clients = [],
@@ -70,10 +68,10 @@ function createSocksServer(cb) {
     var socksServer = net.createServer();
     socksServer.on('listening', function() {
         var address = socksServer.address();
-        info('LISTENING %s:%s', address.address, address.port);
+        info('LISTENING %s:%d', address.address, address.port);
     });
     socksServer.on('connection', function(socket) {
-        info('CONNECTED %s:%s', socket.remoteAddress, socket.remotePort);
+        info('CONNECTED %s:%d', socket.remoteAddress, socket.remotePort);
         initSocksConnection.bind(socket)(cb);
     });
     return socksServer;
@@ -153,10 +151,10 @@ function handleRequest(chunk) {
         return;
     } */
     address = Address.read(chunk, 3);
-    offset = 3 + Address.sizeOf(chunk, 3) + 2;
+    offset = 4 + Address.sizeOf(chunk, 3);
     port = chunk.readUInt16BE(offset);
 
-    log('Request: type: %d -- to: %s:%s', chunk[1], address, port);
+    log('Request: type: %d -- to: %s:%d', chunk[1], address, port);
 
     if (cmd == REQUEST_CMD.CONNECT) {
         this.request = chunk;
@@ -177,8 +175,7 @@ function proxyReady() {
     resp[1] = 0x00;
     resp[2] = 0x00;
     this.write(resp);
-    log('Connected to: %s:%d', resp.toString('utf8', 4, resp.length - 2), resp.readUInt16BE(resp.length - 2));
-
+    log('Connected to: %s:%d', Address.read(resp, 3), resp.readUInt16BE(resp.length - 2));
 
 }
 
