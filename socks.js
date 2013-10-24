@@ -1,10 +1,13 @@
 var net = require('net'),
     util = require('util'),
+    DNS = require('dns'),
     log = function(){},///console.log,
+    ///log = console.log,
     info = console.info,
     errorLog = console.error,
     clients = [],
-    SOCKS_VERSION = 5,
+    SOCKS_VERSION5 = 5,
+    SOCKS_VERSION4 = 4,
 /*
  * Authentication methods
  ************************
@@ -76,7 +79,7 @@ function createSocksServer(cb) {
     });
     return socksServer;
 }
-//
+
 // socket is available as this
 function initSocksConnection(on_accept) {
     // keep log of connected clients
@@ -102,11 +105,28 @@ function initSocksConnection(on_accept) {
 function handshake(chunk) {
     this.removeListener('data', this.handshake);
 
+    // SOCKS Version 4/5 is the only support version
+    if (chunk[0] == SOCKS_VERSION5) {
+        this.socksVersion = SOCKS_VERSION5;
+        this.handshake5 = handshake5.bind(this);
+        this.handshake5(chunk);
+    } else if (chunk[0] == SOCKS_VERSION4) {
+        this.socksVersion = SOCKS_VERSION4;
+        this.handshake4 = handshake4.bind(this);
+        this.handshake4(chunk);
+    } else {
+        errorLog('handshake: wrong socks version: %d', chunk[0]);
+        this.end();
+    }
+}
+
+// SOCKS5
+function handshake5(chunk) {
     var method_count = 0;
 
     // SOCKS Version 5 is the only support version
-    if (chunk[0] != SOCKS_VERSION) {
-        errorLog('handshake: wrong socks version: %d', chunk[0]);
+    if (chunk[0] != SOCKS_VERSION5) {
+        errorLog('socks5 handshake: wrong socks version: %d', chunk[0]);
         this.end();
     }
     // Number of authentication methods
@@ -134,6 +154,94 @@ function handshake(chunk) {
     }
 }
 
+// SOCKS4/4a
+function handshake4(chunk) {
+    var cmd=chunk[1],
+        address,
+        port,
+        uid;
+        
+    // Wrong version!
+    if (chunk[0] !== SOCKS_VERSION4) {
+        this.end('%d%d', 0x00, 0x5b);
+        errorLog('socks4 handleRequest: wrong socks version: %d', chunk[0]);
+        return;
+    }
+    port = chunk.readUInt16BE(2);
+    
+    // SOCKS4a
+    if ((chunk[4] == 0 && chunk[5] == chunk[6] == 0) && (chunk[7] != 0)) {
+        var it = 0;
+        
+        uid = '';
+        for (it=0; it < 1024; it++) {
+            uid += chunk[8+it];
+            if (chunk[8+it] == 0x00)
+                break;
+        }
+        address = '';
+        if (chunk[8+it] == 0x00) {
+            for (it++; it < 2048; it++) {
+                address += chunk[8+it];
+                if (chunk[8+it] == 0x00)
+                    break;    
+            }
+        }
+        if (chunk[8+it] == 0x00) {
+            // DNS lookup
+            DNS.lookup(address, function(err, ip, family){
+	            if (err) {
+	                errorLog(err+',socks4a dns lookup failed');
+	                
+	                this.end('%d%d', 0x00, 0x5b);
+				    return;
+	            } else {
+				    this.socksAddress = ip;
+				    this.socksPort = port;
+				    this.socksUid = uid;
+				    
+				    log('socks4a Request: type: %d -- to: %s:%d:%s', cmd, address, port, uid);
+				
+				    if (cmd == REQUEST_CMD.CONNECT) {
+				        this.request = chunk;
+				        this.on_accept(this, port, ip, proxyReady4.bind(this));
+				    } else {
+				        this.end('%d%d', 0x00, 0x5b);
+				        return;
+				    }	            
+	            }
+	        });
+        } else {
+            this.end('%d%d', 0x00, 0x5b);
+            return;
+        }
+    } else {
+        // SOCKS4
+        address = util.format('%s.%s.%s.%s', chunk[4], chunk[5], chunk[6], chunk[7]);
+        
+        uid = '';
+        for (it=0; it < 1024; it++) {
+            uid += chunk[8+it];
+            if (chunk[8+it] == 0x00)
+                break;
+        }
+	    
+	    this.socksAddress = address;
+	    this.socksPort = port;
+	    this.socksUid = uid;
+	    
+	    log('socks4 Request: type: %d -- to: %s:%d:%s', cmd, address, port, uid);
+	
+	    if (cmd == REQUEST_CMD.CONNECT) {
+	        this.request = chunk;
+	        this.on_accept(this, port, address, proxyReady4.bind(this));
+	    } else {
+	        this.end('%d%d', 0x00, 0x5b);
+	        return;
+	    }
+    }
+}
+
 function handleRequest(chunk) {
     this.removeListener('data', this.handleRequest);
     var cmd=chunk[1],
@@ -141,42 +249,67 @@ function handleRequest(chunk) {
         port,
         offset=3;
     // Wrong version!
-    if (chunk[0] !== SOCKS_VERSION) {
+    if (chunk[0] !== SOCKS_VERSION5) {
         this.end('%d%d', 0x05, 0x01);
-        errorLog('handleRequest: wrong socks version: %d', chunk[0]);
+        errorLog('socks5 handleRequest: wrong socks version: %d', chunk[0]);
         return;
     } /* else if (chunk[2] == 0x00) {
         this.end(util.format('%d%d', 0x05, 0x01));
-        errorLog('handleRequest: Mangled request. Reserved field is not null: %d', chunk[offset]);
+        errorLog('socks5 handleRequest: Mangled request. Reserved field is not null: %d', chunk[offset]);
         return;
     } */
     address = Address.read(chunk, 3);
     offset = 4 + Address.sizeOf(chunk, 3);
     port = chunk.readUInt16BE(offset);
 
-    log('Request: type: %d -- to: %s:%d', chunk[1], address, port);
+    log('socks5 Request: type: %d -- to: %s:%d', chunk[1], address, port);
 
     if (cmd == REQUEST_CMD.CONNECT) {
         this.request = chunk;
-        this.on_accept(this, port, address, proxyReady.bind(this));
+        this.on_accept(this, port, address, proxyReady5.bind(this));
     } else {
         this.end('%d%d', 0x05, 0x01);
         return;
     }
 }
 
-function proxyReady() {
+function proxyReady5() {
     log('Indicating to the client that the proxy is ready');
     // creating response
     var resp = new Buffer(this.request.length);
     this.request.copy(resp);
     // rewrite response header
-    resp[0] = SOCKS_VERSION;
+    resp[0] = SOCKS_VERSION5;
     resp[1] = 0x00;
     resp[2] = 0x00;
+    
     this.write(resp);
-    log('Connected to: %s:%d', Address.read(resp, 3), resp.readUInt16BE(resp.length - 2));
+    
+    log('socks5 Connected to: %s:%d', Address.read(resp, 3), resp.readUInt16BE(resp.length - 2));
+}
 
+function proxyReady4() {
+    log('Indicating to the client that the proxy is ready');
+    // creating response
+    var resp = new Buffer(8);
+    
+    // write response header
+    resp[0] = 0x00;
+    resp[1] = 0x5a;
+    
+    // port
+    resp.writeUInt16BE(this.socksPort, 2);
+    
+    // ip
+    var ips = this.socksAddress.split('.');
+    resp.writeUInt8(parseInt(ips[0]), 4);
+    resp.writeUInt8(parseInt(ips[1]), 5);
+    resp.writeUInt8(parseInt(ips[2]), 6);
+    resp.writeUInt8(parseInt(ips[3]), 7);
+    
+    this.write(resp);
+    
+    log('socks4 Connected to: %s:%d:%s', this.socksAddress, this.socksPort, this.socksUid);
 }
 
 module.exports = {

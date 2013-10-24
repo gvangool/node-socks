@@ -1,8 +1,11 @@
 {
     "name": "socks5"
-  , "version": "0.1.0"
-  , "description": "A simple SOCKS implementation and demo proxy"
-  , "author": "Gert Van Gool <gertvangool@gmail.com>"
+  , "version": "0.2.0"
+  , "description": "A simple SOCKS 5/4/4a implementation and demo proxy"
+  , "author": [
+    "Gert Van Gool <gertvangool@gmail.com>",
+    "Tom Zhou <zs68j2ee@gmail.com>"
+  ]
   , "repository": {
     "type": "git",
     "url": "git://github.com/sequoiar/node-socks.git"
@@ -10,6 +13,8 @@
   , "keywords": [
     "socks",
     "socks5",
+    "socks4",
+    "socks4a",
     "proxy",
     "http"
   ]
