@@ -99,12 +99,10 @@ function initSocksConnection(on_accept) {
     // do a handshake
     this.handshake = handshake.bind(this);
     this.on_accept = on_accept; // No bind. We want 'this' to be the server, like it would be for net.createServer
-    this.on('data', this.handshake);
+    this.once('data', this.handshake);
 }
 
 function handshake(chunk) {
-    this.removeListener('data', this.handshake);
-
     // SOCKS Version 4/5 is the only support version
     if (chunk[0] == SOCKS_VERSION5) {
         this.socksVersion = SOCKS_VERSION5;
@@ -144,7 +142,7 @@ function handshake5(chunk) {
     if (this.auth_methods.indexOf(AUTHENTICATION.NOAUTH) > -1) {
         log('Handing off to handleRequest');
         this.handleRequest = handleRequest.bind(this);
-        this.on('data', this.handleRequest);
+        this.once('data', this.handleRequest);
         resp[1] = AUTHENTICATION.NOAUTH;
         this.write(resp);
     } else {
@@ -243,7 +241,6 @@ function handshake4(chunk) {
 }
 
 function handleRequest(chunk) {
-    this.removeListener('data', this.handleRequest);
     var cmd=chunk[1],
         address,
         port,
