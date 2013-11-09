@@ -4,7 +4,7 @@
   , "description": "A simple SOCKS 5/4/4a implementation and demo proxy"
   , "author": [
     "Gert Van Gool <gertvangool@gmail.com>",
-    "Tom Zhou <zs68j2ee@gmail.com>"
+    "Tom Zhou <iwebpp@gmail.com>"
   ]
   , "repository": {
     "type": "git",
