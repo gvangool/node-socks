@@ -1,6 +1,6 @@
 {
     "name": "socks5"
-  , "version": "0.2.1"
+  , "version": "0.2.2"
   , "description": "A simple SOCKS 5/4/4a implementation and demo proxy"
   , "author": [
     "Gert Van Gool <gertvangool@gmail.com>",
