@@ -48,6 +48,9 @@ var HOST='127.0.0.1',
         }
       });
 
+      proxy.on('error', function(err){
+          console.log('Ignore proxy error');
+      });
       proxy.on('close', function(had_error) {
         try {
           socket.end();
@@ -56,6 +59,9 @@ var HOST='127.0.0.1',
         }
       }.bind(this));
       
+      socket.on('error', function(err){
+          console.log('Ignore socket error');
+      });
       socket.on('close', function(had_error) {
         try {
           if (this.proxy !== undefined) {
