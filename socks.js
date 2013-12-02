@@ -255,9 +255,15 @@ function handleRequest(chunk) {
         errorLog('socks5 handleRequest: Mangled request. Reserved field is not null: %d', chunk[offset]);
         return;
     } */
-    address = Address.read(chunk, 3);
-    offset = 4 + Address.sizeOf(chunk, 3);
-    port = chunk.readUInt16BE(offset);
+    try {
+	    address = Address.read(chunk, 3);
+	    offset = 4 + Address.sizeOf(chunk, 3);
+	    port = chunk.readUInt16BE(offset);
+    } catch (e) {
+        this.end('%d%d', 0x05, 0x01);
+        errorLog('socks5 handleRequest: Address.read '+e);
+        return;
+    }
 
     log('socks5 Request: type: %d -- to: %s:%d', chunk[1], address, port);
 
