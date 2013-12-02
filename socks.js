@@ -260,7 +260,6 @@ function handleRequest(chunk) {
 	    offset = 4 + Address.sizeOf(chunk, 3);
 	    port = chunk.readUInt16BE(offset);
     } catch (e) {
-        this.end('%d%d', 0x05, 0x01);
         errorLog('socks5 handleRequest: Address.read '+e);
         return;
     }
