@@ -12,7 +12,7 @@ var HOST='127.0.0.1',
       // Implement your own proxy here! Do encryption, tunnelling, whatever! Go flippin' mental!
       // I plan to tunnel everything including SSH over an HTTP tunnel. For now, though, here is the plain proxy:
 
-      var proxy = net.createConnection(port, address, proxy_ready);
+      var proxy = net.createConnection({port:port, host:address,localAddress:process.argv[2]||undefined}, proxy_ready);
       var localAddress,localPort;
       proxy.on('connect', function(){
         info('%s:%d <== %s:%d ==> %s:%d',socket.remoteAddress,socket.remotePort,
