@@ -5,7 +5,7 @@ A simple SOCKS implementation and demo proxy in `node.js <http://nodejs.org>`_.
 
 You can run it easily as::
 
-  ./socks
+  node proxy.js
 
 This will create a proxy at ``127.0.0.1`` on port ``8888``.
 

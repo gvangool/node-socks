@@ -2,10 +2,10 @@ var net = require('net'),
     util = require('util'),
     DNS = require('dns'),
     log = function(){},///console.log,
-    ///log = console.log,
-    ///info = console.info,
+    //log = console.log.bind(console),
+    //info = console.info.bind(console),
     info = function(){},///console.log,
-    errorLog = console.error,
+    errorLog = console.error.bind(console),
     clients = [],
     SOCKS_VERSION5 = 5,
     SOCKS_VERSION4 = 4,
@@ -66,13 +66,24 @@ var net = require('net'),
                         return 16;
                     }
                 }
+    },
+    Port = {
+        read: function (buffer, offset) {
+                  if (buffer[offset] == ATYP.IP_V4) {
+                      return buffer.readUInt16BE(8);
+                  } else if (buffer[offset] == ATYP.DNS) {
+                      return buffer.readUInt16BE(5+buffer[offset+1]);
+                  } else if (buffer[offset] == ATYP.IP_V6) {
+                      return buffer.readUInt16BE(20);
+                  }
+              },
     };
 
 function createSocksServer(cb) {
     var socksServer = net.createServer();
     socksServer.on('listening', function() {
         var address = socksServer.address();
-        info('LISTENING %s:%d', address.address, address.port);
+        console.log('LISTENING %s:%d', address.address, address.port);
     });
     socksServer.on('connection', function(socket) {
         info('CONNECTED %s:%d', socket.remoteAddress, socket.remotePort);
@@ -258,8 +269,7 @@ function handleRequest(chunk) {
     } */
     try {
 	    address = Address.read(chunk, 3);
-	    offset = 4 + Address.sizeOf(chunk, 3);
-	    port = chunk.readUInt16BE(offset);
+	    port = Port.read(chunk, 3);
     } catch (e) {
         errorLog('socks5 handleRequest: Address.read '+e);
         return;
