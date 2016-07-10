@@ -8,7 +8,7 @@
   ]
   , "repository": {
     "type": "git",
-    "url": "git://github.com/sequoiar/node-socks.git"
+    "url": "git://github.com/sequoiar/socks5.git"
   }
   , "keywords": [
     "socks",
