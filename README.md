@@ -14,3 +14,7 @@ You can use this as a good starting point for writing a proxy or a tunnel!
 ### Install
 - npm install socks5
 
+
+### License
+
+(The MIT License)
