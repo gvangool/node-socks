@@ -138,6 +138,7 @@ function handshake5(chunk) {
     if (chunk[0] != SOCKS_VERSION5) {
         errorLog('socks5 handshake: wrong socks version: %d', chunk[0]);
         this.end();
+        return;
     }
     // Number of authentication methods
     method_count = chunk[1];
@@ -204,7 +205,7 @@ function handshake4(chunk) {
 	                errorLog(err+',socks4a dns lookup failed');
 	                
 	                this.end('%d%d', 0x00, 0x5b);
-				    return;
+		        return;
 	            } else {
 				    this.socksAddress = ip;
 				    this.socksPort = port;
