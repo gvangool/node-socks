@@ -278,13 +278,13 @@ function handshake4(chunk) {
     }
 }
 
-function handlAuthRequest(chunk) {
+function handleAuthRequest(chunk) {
     var cmd=chunk[1],
         username,
         password;
     // Wrong version!
     if (chunk[0] !== SOCKS_VERSION5) {
-        this.end(new Buffer([0x05, x01]));
+        this.end(new Buffer([0x05, 0x01]));
         errorLog('socks5 handleConnRequest: wrong socks version: %d', chunk[0]);
         return;
     } /* else if (chunk[2] == 0x00) {
@@ -297,6 +297,7 @@ function handlAuthRequest(chunk) {
         for (ni=   2;ni<(2+chunk[1]);    ni++) na.push(chunk[ni]);username = new Buffer(na).toString('utf8');
         for (pi=ni+1;pi<(ni+1+chunk[ni]);pi++) pa.push(chunk[pi]);password = new Buffer(pa).toString('utf8');       
     } catch (e) {
+	this.end(new Buffer([0x05, 0x01]));
         errorLog('socks5 handleAuthRequest: username/password '+e);
         return;
     }
@@ -310,7 +311,7 @@ function handlAuthRequest(chunk) {
         this.once('data', this.handleConnRequest);
         this.write(new Buffer([0x05, 0x00]));
     } else {
-        this.end(new Buffer([0x05, x01]));
+        this.end(new Buffer([0x05, 0x01]));
         errorLog('socks5 handleConnRequest: wrong socks version: %d', chunk[0]);
         return;
     }
@@ -323,7 +324,7 @@ function handleConnRequest(chunk) {
         offset=3;
     // Wrong version!
     if (chunk[0] !== SOCKS_VERSION5) {
-        this.end(new Buffer([0x05, x01]));
+        this.end(new Buffer([0x05, 0x01]));
         errorLog('socks5 handleConnRequest: wrong socks version: %d', chunk[0]);
         return;
     } /* else if (chunk[2] == 0x00) {
@@ -332,8 +333,8 @@ function handleConnRequest(chunk) {
         return;
     } */
     try {
-	    address = Address.read(chunk, 3);
-	    port = Port.read(chunk, 3);
+        address = Address.read(chunk, 3);
+	port = Port.read(chunk, 3);
     } catch (e) {
         errorLog('socks5 handleConnRequest: Address.read '+e);
         return;
@@ -345,7 +346,7 @@ function handleConnRequest(chunk) {
         this.request = chunk;
         this.on_accept(this, port, address, proxyReady5.bind(this));
     } else {
-        this.end(new Buffer([0x05, x01]));
+        this.end(new Buffer([0x05, 0x01]));
         return;
     }
 }
