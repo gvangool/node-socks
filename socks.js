@@ -163,25 +163,31 @@ function handshake5(chunk) {
     resp[0] = 0x05;
 
     // user/pass auth
-    if (USERPASS && this.auth_methods.indexOf(AUTHENTICATION.USERPASS) > -1) {
-        log('Handing off to handleAuthRequest');
-        this.handleAuthRequest = handleAuthRequest.bind(this);
-        this.once('data', this.handleAuthRequest);
-        resp[1] = AUTHENTICATION.USERPASS;
-        this.write(resp);
+    if (USERPASS) {
+        if (this.auth_methods.indexOf(AUTHENTICATION.USERPASS) > -1) {
+            log('Handing off to handleAuthRequest');
+            this.handleAuthRequest = handleAuthRequest.bind(this);
+            this.once('data', this.handleAuthRequest);
+            resp[1] = AUTHENTICATION.USERPASS;
+            this.write(resp);
+        } else {
+            errorLog('Unsuported authentication method -- disconnecting');
+            resp[1] = 0xFF;
+            this.end(resp);
+        }
     } else
-    // NO Auth
-    if (this.auth_methods.indexOf(AUTHENTICATION.NOAUTH) > -1) {
-        log('Handing off to handleConnRequest');
-        this.handleConnRequest = handleConnRequest.bind(this);
-        this.once('data', this.handleConnRequest);
-        resp[1] = AUTHENTICATION.NOAUTH;
-        this.write(resp);
-    } else {
-        errorLog('Unsuported authentication method -- disconnecting');
-        resp[1] = 0xFF;
-        this.end(resp);
-    }
+        // NO Auth
+        if (this.auth_methods.indexOf(AUTHENTICATION.NOAUTH) > -1) {
+            log('Handing off to handleConnRequest');
+            this.handleConnRequest = handleConnRequest.bind(this);
+            this.once('data', this.handleConnRequest);
+            resp[1] = AUTHENTICATION.NOAUTH;
+            this.write(resp);
+        } else {
+            errorLog('Unsuported authentication method -- disconnecting');
+            resp[1] = 0xFF;
+            this.end(resp);
+        }
 }
 
 // SOCKS4/4a
