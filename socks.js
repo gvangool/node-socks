@@ -199,7 +199,7 @@ function handshake4(chunk) {
 
     // Wrong version!
     if (chunk[0] !== SOCKS_VERSION4) {
-        this.end('%d%d', 0x00, 0x5b);
+        this.end(new Buffer([0x00, 0x5b]));
         errorLog('socks4 handleConnRequest: wrong socks version: %d', chunk[0]);
         return;
     }
