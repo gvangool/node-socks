@@ -85,7 +85,7 @@ var net = require('net'),
 function createSocksServer(cb, userpass) {
     // record userpass 
     USERPASS = userpass;
-    log('userpass:'+userpass);
+    console.log('userpass:'+JSON.stringify(userpass));
 
     var socksServer = net.createServer();
     socksServer.on('listening', function() {
@@ -279,25 +279,21 @@ function handshake4(chunk) {
 }
 
 function handleAuthRequest(chunk) {
-    var cmd=chunk[1],
-        username,
+    var username,
         password;
     // Wrong version!
-    if (chunk[0] !== SOCKS_VERSION5) {
-        this.end(new Buffer([0x05, 0x01]));
-        errorLog('socks5 handleConnRequest: wrong socks version: %d', chunk[0]);
+    if (chunk[0] !== 1) { // MUST be 1
+        this.end(new Buffer([0x01, 0x01]));
+        errorLog('socks5 handleAuthRequest: wrong socks version: %d', chunk[0]);
         return;
-    } /* else if (chunk[2] == 0x00) {
-        this.end(util.format('%d%d', 0x05, 0x01));
-        errorLog('socks5 handleConnRequest: Mangled request. Reserved field is not null: %d', chunk[offset]);
-        return;
-    } */
+    }
+ 
     try {
         var na = [],pa=[],ni,pi;
         for (ni=   2;ni<(2+chunk[1]);    ni++) na.push(chunk[ni]);username = new Buffer(na).toString('utf8');
         for (pi=ni+1;pi<(ni+1+chunk[ni]);pi++) pa.push(chunk[pi]);password = new Buffer(pa).toString('utf8');       
     } catch (e) {
-	this.end(new Buffer([0x05, 0x01]));
+	this.end(new Buffer([0x01, 0x01]));
         errorLog('socks5 handleAuthRequest: username/password '+e);
         return;
     }
@@ -309,9 +305,9 @@ function handleAuthRequest(chunk) {
         log('Handing off to handleConnRequest');
         this.handleConnRequest = handleConnRequest.bind(this);
         this.once('data', this.handleConnRequest);
-        this.write(new Buffer([0x05, 0x00]));
+        this.write(new Buffer([0x01, 0x00]));
     } else {
-        this.end(new Buffer([0x05, 0x01]));
+        this.end(new Buffer([0x01, 0x01]));
         errorLog('socks5 handleConnRequest: wrong socks version: %d', chunk[0]);
         return;
     }

@@ -5,8 +5,8 @@ var net = require('net'),
 
 // Create server
 // The server accepts SOCKS connections. This particular server acts as a proxy.
-var HOST='127.0.0.1',
-    PORT='8888',
+var HOST='0.0.0.0',
+    PORT='6801',
     server = socks.createServer(function(socket, port, address, proxy_ready) {
 
       // Implement your own proxy here! Do encryption, tunnelling, whatever! Go flippin' mental!
@@ -80,9 +80,9 @@ var HOST='127.0.0.1',
           //console.error('The socket %s:%d closed',socket.remoteAddress,socket.remotePort);
         } catch (err) {
         }
-      }.bind(this), process.argv[3]&&process.argv[4]&&{username:process.argv[3],password:process.argv[4]});
+      }.bind(this));
 
-    });
+    }, process.argv[3]&&process.argv[4]&&{username:process.argv[3],password:process.argv[4]});
 
 server.on('error', function (e) {
     console.error('SERVER ERROR: %j', e);
