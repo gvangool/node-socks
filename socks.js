@@ -279,8 +279,7 @@ function handshake4(chunk) {
 }
 
 function handleAuthRequest(chunk) {
-    var cmd=chunk[1],
-        username,
+    var username,
         password;
     // Wrong version!
     if (chunk[0] !== SOCKS_VERSION5) {
