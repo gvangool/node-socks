@@ -19,7 +19,7 @@ var HOST='127.0.0.1',
               proxy.localAddress,proxy.localPort,proxy.remoteAddress,proxy.remotePort);
         localAddress=proxy.localAddress;
         localPort=proxy.localPort;
-      }.bind(this),process.argv[3]&&process.argv[4]&&{username:process.argv[3],password:process.argv[4]});
+      }.bind(this));
       proxy.on('data', function(d) {
         try {
           //console.log('receiving ' + d.length + ' bytes from proxy');
@@ -80,7 +80,7 @@ var HOST='127.0.0.1',
           //console.error('The socket %s:%d closed',socket.remoteAddress,socket.remotePort);
         } catch (err) {
         }
-      }.bind(this));
+      }.bind(this), process.argv[3]&&process.argv[4]&&{username:process.argv[3],password:process.argv[4]});
 
     });
 
