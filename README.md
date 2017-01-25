@@ -1,4 +1,4 @@
-SOCKS v4/v4a/v5 server implementation with user/pass authenticationin node.js
+SOCKS v4/v4a/v5 server implementation with user/pass authentication node.js
 =============================================================================
 
 A simple SOCKS v5/v4/v4a server implementation and demo proxy.
